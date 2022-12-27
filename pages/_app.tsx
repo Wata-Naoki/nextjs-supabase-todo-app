@@ -48,7 +48,6 @@ function MyApp({ Component, pageProps }: AppProps) {
   }
   supabase.auth.onAuthStateChange((event, _) => {
     if (event === 'SIGNED_IN' && pathname === '/') {
-      alert('You are already signed in')
       push('/dashboard')
     }
     if (event === 'SIGNED_OUT') {
