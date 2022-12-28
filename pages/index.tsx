@@ -1,6 +1,7 @@
 import { BadgeCheckIcon, ShieldCheckIcon } from '@heroicons/react/solid'
 import React from 'react'
 import { Layout } from '../components/Layout'
+import { Spinner } from '../components/Spinner'
 import { useMutateAuth } from '../hooks/useMutateAuth'
 
 const Auth = () => {
