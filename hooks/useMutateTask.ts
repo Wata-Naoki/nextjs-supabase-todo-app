@@ -1,7 +1,7 @@
-import { useMutation, useQueryClient } from 'react-query'
-import { useStore } from '../store'
-import { EditedTask, Task } from '../types/types'
+import { useQueryClient, useMutation } from 'react-query'
 import { supabase } from '../utils/supabase'
+import { Task, EditedTask } from '../types/types'
+import { useStore } from '../store'
 
 export const useMutateTask = () => {
   const queryClient = useQueryClient()
@@ -14,15 +14,11 @@ export const useMutateTask = () => {
       return data
     },
     {
-      // resはdata
       onSuccess: (res) => {
-        alert(`${res}`)
         const previousTodos = queryClient.getQueryData<Task[]>('todos')
         if (previousTodos) {
           queryClient.setQueryData('todos', [...previousTodos, res[0]])
         }
-        // キャッシュが古いとみなし、明示的に再取得もできる
-        // queryClient.invalidateQueries('todos')
         reset()
       },
       onError: (err: any) => {
@@ -31,7 +27,6 @@ export const useMutateTask = () => {
       },
     }
   )
-
   const updateTaskMutation = useMutation(
     async (task: EditedTask) => {
       const { data, error } = await supabase
@@ -43,17 +38,15 @@ export const useMutateTask = () => {
     },
     {
       onSuccess: (res, variables) => {
-        alert(`${res} ${res[0]} ${variables}}`)
         const previousTodos = queryClient.getQueryData<Task[]>(['todos'])
         if (previousTodos) {
           queryClient.setQueryData(
             ['todos'],
-            previousTodos.map((todo) => {
+            previousTodos.map((todo) =>
               todo.id === variables.id ? res[0] : todo
-            })
+            )
           )
         }
-
         reset()
       },
       onError: (err: any) => {
@@ -62,7 +55,6 @@ export const useMutateTask = () => {
       },
     }
   )
-
   const deleteTaskMutation = useMutation(
     async (id: string) => {
       const { data, error } = await supabase.from('todos').delete().eq('id', id)
@@ -70,20 +62,21 @@ export const useMutateTask = () => {
       return data
     },
     {
-      onSuccess: (res, variables) => {
-        const previousTodos = queryClient.getQueryData<Task[]>(['todos'])
+      onSuccess: (_, variables) => {
+        const previousTodos = queryClient.getQueryData<Task[]>('todos')
         if (previousTodos) {
           queryClient.setQueryData(
-            ['todos'],
-            previousTodos.filter((todo) => todo.id !== variables)
+            'todos',
+            previousTodos.filter((task) => task.id !== variables)
           )
         }
+        reset()
       },
-
       onError: (err: any) => {
         alert(err.message)
         reset()
       },
     }
   )
+  return { deleteTaskMutation, createTaskMutation, updateTaskMutation }
 }

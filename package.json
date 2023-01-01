@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "serve": "PORT=4000 next dev"
   },
   "dependencies": {
     "@heroicons/react": "1.0.6",

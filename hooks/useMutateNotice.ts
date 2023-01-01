@@ -1,7 +1,8 @@
-import { useMutation, useQueryClient } from 'react-query'
-import { useStore } from '../store'
-import { EditedNotice, Notice } from '../types/types'
+import { useQueryClient, useMutation } from 'react-query'
+
 import { supabase } from '../utils/supabase'
+import { Notice, EditedNotice } from '../types/types'
+import { useStore } from '../store'
 
 export const useMutateNotice = () => {
   const queryClient = useQueryClient()
@@ -14,15 +15,11 @@ export const useMutateNotice = () => {
       return data
     },
     {
-      // resはdata
       onSuccess: (res) => {
-        alert(`${res}`)
-        const previousNotices = queryClient.getQueryData<Notice[]>(['notices'])
+        const previousNotices = queryClient.getQueryData<Notice[]>('notices')
         if (previousNotices) {
-          queryClient.setQueryData(['notices'], [...previousNotices, res[0]])
+          queryClient.setQueryData('notices', [...previousNotices, res[0]])
         }
-        // キャッシュが古いとみなし、明示的に再取得もできる
-        // queryClient.invalidateQueries('todos')
         reset()
       },
       onError: (err: any) => {
@@ -31,29 +28,26 @@ export const useMutateNotice = () => {
       },
     }
   )
-
   const updateNoticeMutation = useMutation(
     async (notice: EditedNotice) => {
       const { data, error } = await supabase
         .from('notices')
-        .update({ title: notice.content })
+        .update({ content: notice.content })
         .eq('id', notice.id)
       if (error) throw new Error(error.message)
       return data
     },
     {
       onSuccess: (res, variables) => {
-        alert(`${res} ${res[0]} ${variables}}`)
-        const previousNotices = queryClient.getQueryData<Notice[]>(['notices'])
+        const previousNotices = queryClient.getQueryData<Notice[]>('notices')
         if (previousNotices) {
           queryClient.setQueryData(
-            ['notices'],
-            previousNotices.map((notice) => {
+            'notices',
+            previousNotices.map((notice) =>
               notice.id === variables.id ? res[0] : notice
-            })
+            )
           )
         }
-
         reset()
       },
       onError: (err: any) => {
@@ -62,7 +56,6 @@ export const useMutateNotice = () => {
       },
     }
   )
-
   const deleteNoticeMutation = useMutation(
     async (id: string) => {
       const { data, error } = await supabase
@@ -73,16 +66,16 @@ export const useMutateNotice = () => {
       return data
     },
     {
-      onSuccess: (res, variables) => {
-        const previousNotices = queryClient.getQueryData<Notice[]>(['notices'])
+      onSuccess: (_, variables) => {
+        const previousNotices = queryClient.getQueryData<Notice[]>('notices')
         if (previousNotices) {
           queryClient.setQueryData(
-            ['notices'],
+            'notices',
             previousNotices.filter((notice) => notice.id !== variables)
           )
         }
+        reset()
       },
-
       onError: (err: any) => {
         alert(err.message)
         reset()
